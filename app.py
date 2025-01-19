@@ -123,7 +123,10 @@ if not docs or not API_KEY:
 
 else:
     response = run_quiz_chain(docs, topic if topic else file.name)
+    value = None
+
     with st.form("questions_form"):
+        correct_count = 0
         for question in response["questions"]:
             st.write("💬", question["question"])
             value = st.radio(
@@ -133,11 +136,15 @@ else:
             )
             if {"answer": value, "correct": True} in question["answers"]:
                 st.success("✅Correct!")
+                correct_count += 1
             elif value is not None:
                 correct = list(
                     filter(lambda answer: answer["correct"], question["answers"])
                 )[0]["answer"]
                 st.error(f"❌: {correct}")
+        if correct_count == len(response["questions"]):
+            st.balloons()
+
         button = st.form_submit_button()
 
 
