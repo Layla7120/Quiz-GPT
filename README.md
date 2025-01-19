@@ -13,5 +13,5 @@
 6. [ ] Allow the user to use its own OpenAI API Key - st.input inside of st.sidebar
 7. [ ] Using st.sidebar put a link to the Github repo with the code of your Streamlit app
 
-## 📸 Screen Shots
+## 📸 Screenshots
 
