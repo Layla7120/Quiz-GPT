@@ -18,3 +18,8 @@
 
 ## 📸 Screenshots
 
+<img src="./img/Quiz-GPT1.png" width="600px" title="Quiz-GPT1" alt="Quiz-GPT1"/>
+<img src="./img/Quiz-GPT2.png" width="600px" title="Quiz-GPT2" alt="Quiz-GPT2"/>
+<img src="./img/Quiz-GPT3.png" width="600px" title="Quiz-GPT3" alt="Quiz-GPT3"/>
+<img src="./img/Quiz-GPT4.png" width="600px" title="Quiz-GPT4" alt="Quiz-GPT4"/>
+<img src="./img/Quiz-GPT5.png" width="600px" title="Quiz-GPT5" alt="Quiz-GPT5"/>
