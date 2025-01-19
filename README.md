@@ -8,7 +8,7 @@
 1. [x] Users can upload a file or search Wikipedia as the quiz resource.
 2. [x] make a quiz
 3. [x] use caching
-4. [ ] Use Function calling
+4. [x] Use Function calling
 5. [ ] Allow the user to customize the difficulty of the test
 6. [ ] make the LLM generate hard or easy question
 7. [x] Allow the user to retake the test if not all answers are correct

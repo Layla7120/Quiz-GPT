@@ -9,6 +9,7 @@ from langchain.retrievers import WikipediaRetriever
 from langchain.schema import BaseOutputParser
 from langchain.text_splitter import CharacterTextSplitter
 
+from outputFunc import function
 from prompts import formatting_prompt, questions_prompt
 
 Path("./.cache/quiz_files").mkdir(parents=True, exist_ok=True)
@@ -43,10 +44,8 @@ def split_file(file):
 
 @st.cache_data(show_spinner="Making quiz...")
 def run_quiz_chain(_docs, topic):
-    formatting_chain = formatting_prompt | llm
     questions_chain = {"context": format_docs} | questions_prompt | llm
-    chain = {"context": questions_chain} | formatting_chain | output_parser
-    return chain.invoke(_docs)
+    return questions_chain.invoke(_docs)
 
 
 @st.cache_data(show_spinner="Searching Wikipedia...")
@@ -102,6 +101,13 @@ if API_KEY:
             streaming=True,
             callbacks=[StreamingStdOutCallbackHandler()],
             api_key=API_KEY
+        ).bind(
+            function_call={
+                "name": "create_quiz",
+            },
+            functions=[
+                function,
+            ],
         )
         st.success("ChatOpenAI initialized successfully!")
     except Exception as e:
@@ -123,11 +129,14 @@ if not docs or not API_KEY:
 
 else:
     response = run_quiz_chain(docs, topic if topic else file.name)
+    response = response.additional_kwargs["function_call"]["arguments"]
+    questions = json.loads(response)["questions"]
     value = None
 
     with st.form("questions_form"):
         correct_count = 0
-        for question in response["questions"]:
+
+        for question in questions:
             st.write("💬", question["question"])
             value = st.radio(
                 "Select an option.",
@@ -142,7 +151,7 @@ else:
                     filter(lambda answer: answer["correct"], question["answers"])
                 )[0]["answer"]
                 st.error(f"❌: {correct}")
-        if correct_count == len(response["questions"]):
+        if correct_count == len(questions):
             st.balloons()
 
         button = st.form_submit_button()
