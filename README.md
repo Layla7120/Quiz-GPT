@@ -6,6 +6,7 @@
 
 ## ⚒️ Task
 1. [x] Users can upload a file or search Wikipedia as the quiz resource.
+2. [x] make a quiz
 2. [ ] Use Function calling
 3. [ ] Allow the user to customize the difficulty of the test
 4. [ ] make the LLM generate hard or easy question
