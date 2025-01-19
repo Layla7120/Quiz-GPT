@@ -1,15 +1,30 @@
+import json
 from pathlib import Path
 
 import streamlit as st
 from langchain.callbacks import StreamingStdOutCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredFileLoader
-from langchain.prompts import ChatPromptTemplate
 from langchain.retrievers import WikipediaRetriever
+from langchain.schema import BaseOutputParser
 from langchain.text_splitter import CharacterTextSplitter
+
+from prompts import formatting_prompt, questions_prompt
 
 Path("./.cache/quiz_files").mkdir(parents=True, exist_ok=True)
 
+class JsonOutputParser(BaseOutputParser):
+    def parse(self, text):
+        text = text.replace("```", "").replace("json", "")
+        return json.loads(text)
+
+
+output_parser = JsonOutputParser()
+
+st.set_page_config(
+    page_title="Quiz GPT",
+    page_icon="🤔"
+)
 
 @st.cache_data(show_spinner="Loading file...")
 def split_file(file):
@@ -26,17 +41,14 @@ def split_file(file):
     docs = loader.load_and_split(text_splitter=splitter)
     return docs
 
+
 def format_docs(docs):
     return "\n\n".join(document.page_content for document in docs)
 
-st.set_page_config(
-    page_title="Quiz GPT",
-    page_icon="🤔"
-)
 
 with st.sidebar:
     st.title("OpenAI API KEY")
-    API_KEY = st.text_input("Use your API KEY")
+    API_KEY = st.text_input("Use your API KEY", type="password")
 
     choice = st.selectbox(
         "Choose what you want to use.",
@@ -64,12 +76,10 @@ with st.sidebar:
 
     st.markdown("""
     ### 🔗 Github Repo 
-    
+
     [![Repo](https://badgen.net/badge/icon/GitHub?icon=github&label)](https://github.com/Layla7120/Quiz-GPT)
     """)
     st.subheader("2025-01-19")
-
-st.header("🤔 Quiz GPT")
 
 if API_KEY:
     try:
@@ -86,6 +96,9 @@ if API_KEY:
 else:
     st.warning("Please enter your OpenAI API key in the sidebar to proceed.")
 
+
+st.header("🤔 Quiz GPT")
+
 if not docs or not API_KEY:
     st.markdown(
         """
@@ -96,46 +109,15 @@ if not docs or not API_KEY:
     )
 
 else:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """
-                    You are a helpful assistant that is role playing as a teacher.
-                
-                    Based ONLY on the following context make 10 questions to test the user's knowledge about the text.
-                
-                    Each question should have 4 answers, three of them must be incorrect and one should be correct.
-                
-                    Use (o) to signal the correct answer.
-                
-                    Question examples:
-                
-                    Question: What is the color of the ocean?
-                    Answers: Red|Yellow|Green|Blue(o)
-                
-                    Question: What is the capital or Georgia?
-                    Answers: Baku|Tbilisi(o)|Manila|Beirut
-                
-                    Question: When was Avatar released?
-                    Answers: 2007|2001|2009(o)|1998
-                
-                    Question: Who was Julius Caesar?
-                    Answers: A Roman Emperor(o)|Painter|Actor|Model
-                
-                    Your turn!
-                
-                    Context: {context}
-                """,
-            )
-        ]
-    )
-
-    chain = {"context": format_docs} | prompt | llm
-
     start = st.button("Generate Quiz")
 
     if start:
-        chain.invoke(docs)
+        formatting_chain = formatting_prompt | llm
+        questions_chain = {"context": format_docs} | questions_prompt | llm
+
+        if start:
+            chain = {"context": questions_chain} | formatting_chain | output_parser
+            response = chain.invoke(docs)
+            st.write(response)
 
 
