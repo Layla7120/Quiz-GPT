@@ -43,9 +43,16 @@ def split_file(file):
     return docs
 
 @st.cache_data(show_spinner="Making quiz...")
-def run_quiz_chain(_docs, topic):
-    questions_chain = {"context": format_docs} | questions_prompt | llm
-    return questions_chain.invoke(_docs)
+def run_quiz_chain(_docs, topic, difficulty):
+    formatted_docs = format_docs(_docs)
+
+    # Create the input dictionary
+    input_data = {
+        "context": formatted_docs,
+        "difficulty": difficulty
+    }
+    questions_chain = questions_prompt | llm
+    return questions_chain.invoke(input_data)
 
 
 @st.cache_data(show_spinner="Searching Wikipedia...")
@@ -57,10 +64,15 @@ def wiki_search(term):
 def format_docs(docs):
     return "\n\n".join(document.page_content for document in docs)
 
-
+difficulty = "Easy"
 with st.sidebar:
     st.title("OpenAI API KEY")
     API_KEY = st.text_input("Use your API KEY", type="password")
+
+    difficulty = st.selectbox(
+        'Choose the difficulty level',
+        ("Easy", "Hard")
+    )
 
     choice = st.selectbox(
         "Choose what you want to use.",
@@ -71,6 +83,7 @@ with st.sidebar:
     )
 
     docs = None
+    topic = None
     if choice == "File":
         file = st.file_uploader(
             "Upload a .txt, .pdf or .docx file",
@@ -78,7 +91,6 @@ with st.sidebar:
         )
         if file:
             docs = split_file(file)
-            st.write(docs)
     else:
         topic = st.text_input("Search Wikipedia...")
         if topic:
@@ -128,7 +140,7 @@ if not docs or not API_KEY:
     )
 
 else:
-    response = run_quiz_chain(docs, topic if topic else file.name)
+    response = run_quiz_chain(docs, topic if topic else file.name, difficulty)
     response = response.additional_kwargs["function_call"]["arguments"]
     questions = json.loads(response)["questions"]
     value = None
