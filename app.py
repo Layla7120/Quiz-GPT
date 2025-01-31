@@ -43,7 +43,7 @@ def split_file(file):
     return docs
 
 @st.cache_data(show_spinner="Making quiz...")
-def run_quiz_chain(_docs, topic, difficulty):
+def run_quiz_chain(_docs, topic, difficulty, language):
     formatted_docs = format_docs(_docs)
 
     # Create the input dictionary
@@ -145,21 +145,23 @@ if not docs or not API_KEY:
     )
 
 else:
-    response = run_quiz_chain(docs, topic if topic else file.name, difficulty)
+    response = run_quiz_chain(docs, topic if topic else file.name, difficulty, language)
     response = response.additional_kwargs["function_call"]["arguments"]
     questions = json.loads(response)["questions"]
     value = None
 
     with st.form("questions_form"):
         correct_count = 0
-
+        quiz_count = 1
         for question in questions:
             st.write("💬", question["question"])
             value = st.radio(
                 "Select an option.",
                 [answer["answer"] for answer in question["answers"]],
                 index=None,
+                key=quiz_count
             )
+            quiz_count += 1
             if {"answer": value, "correct": True} in question["answers"]:
                 st.success("✅Correct!")
                 correct_count += 1
