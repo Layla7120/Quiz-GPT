@@ -49,7 +49,8 @@ def run_quiz_chain(_docs, topic, difficulty):
     # Create the input dictionary
     input_data = {
         "context": formatted_docs,
-        "difficulty": difficulty
+        "difficulty": difficulty,
+        "language": language
     }
     questions_chain = questions_prompt | llm
     return questions_chain.invoke(input_data)
@@ -74,6 +75,10 @@ with st.sidebar:
         ("Easy", "Hard")
     )
 
+    language = st.selectbox(
+        'Choose language for the quiz',
+        ("English", "Korean", "Spanish", "Mandarin")
+    )
     choice = st.selectbox(
         "Choose what you want to use.",
         (
