@@ -28,6 +28,8 @@ questions_prompt = ChatPromptTemplate.from_messages(
             Answers: A Roman Emperor(o)|Painter|Actor|Model
         
             Your turn! Make it {difficulty}!
+            Make the quiz in {language} nevertheless of the language of source.
+            The answers should also be in {language} but don't try to over translate such as proper nouns.
         
             Context: {context}
         """,
